@@ -1,0 +1,175 @@
+name: Build & Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Release und Docker-Image veröffentlichen"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  PUBLISH: ${{ startsWith(github.ref, 'refs/tags/v') || inputs.publish }}
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.x" }
+      - name: Inno Setup bereitstellen
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+      - name: Installer bauen
+        run: python installer/build.py
+      - name: Installer testen (installieren, starten, Update bei laufendem Programm, deinstallieren)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $setup = (Get-ChildItem dist\Buchlover-Setup-*.exe).FullName
+          $inst = "$env:RUNNER_TEMP\inst"; $data = "$env:RUNNER_TEMP\data"
+          $p = Start-Process $setup -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=`"$inst`"",'/TASKS=""' -Wait -PassThru
+          if ($p.ExitCode) { throw "Installation: Exit $($p.ExitCode)" }
+          Start-Process "$inst\python\pythonw.exe" -ArgumentList '-m','buchlover','--no-browser','--data',"`"$data`"" -WorkingDirectory $inst
+          $ok = $false; foreach ($i in 1..30) { try { $m = Invoke-RestMethod http://127.0.0.1:8765/api/meta; $ok = $true; break } catch { Start-Sleep 1 } }
+          if (-not $ok) { throw "Server startet nicht" }
+          "Version $($m.version)"
+          $hb = Invoke-WebRequest http://127.0.0.1:8765/handbuch -UseBasicParsing
+          if ($hb.Content -notmatch 'Handbuch') { throw "Handbuch fehlt" }
+          $b = Invoke-RestMethod -Method Post http://127.0.0.1:8765/api/books -ContentType 'application/json' -Body '{"author":"Test","title":"Buch"}'
+          # Update bei laufendem Programm muss durchlaufen
+          $p = Start-Process $setup -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=`"$inst`"",'/TASKS=""' -Wait -PassThru
+          if ($p.ExitCode) { throw "Update bei laufendem Programm: Exit $($p.ExitCode)" }
+          $u = Start-Process "$inst\unins000.exe" -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES' -Wait -PassThru
+          if ($u.ExitCode) { throw "Deinstallation: Exit $($u.ExitCode)" }
+          if (-not (Test-Path "$data\buchlover.sqlite")) { throw "Daten fehlen nach Deinstallation" }
+          "Windows-Test ok"
+      - uses: actions/upload-artifact@v4
+        with: { name: windows, path: dist/*.exe }
+
+  linux:
+    strategy:
+      matrix:
+        include:
+          - { runner: ubuntu-latest, target: linux-x86_64 }
+          - { runner: ubuntu-24.04-arm, target: linux-aarch64 }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Paket bauen
+        run: python3 installer/build_unix.py ${{ matrix.target }}
+      - name: Paket testen
+        run: |
+          set -e
+          cd "$RUNNER_TEMP"
+          tar xzf "$GITHUB_WORKSPACE"/dist/buchlover-*-${{ matrix.target }}.tar.gz
+          cd buchlover-*-${{ matrix.target }}
+          export HOME="$RUNNER_TEMP/home"; mkdir -p "$HOME"
+          ./install.sh
+          "$HOME/.local/bin/buchlover" --version
+          "$HOME/.local/bin/buchlover" --no-browser &
+          for i in $(seq 30); do curl -sf http://127.0.0.1:8765/api/meta && break; sleep 1; done
+          curl -sf http://127.0.0.1:8765/handbuch | grep -q Handbuch
+          curl -sf -X POST -H 'Content-Type: application/json' -d '{"title":"Test"}' http://127.0.0.1:8765/api/books
+          test -f "$HOME/.local/share/buchlover/buchlover.sqlite"
+          test -f "$HOME/.local/share/applications/buchlover.desktop"
+          "$HOME/.local/opt/buchlover/uninstall.sh"
+          sleep 1
+          ! curl -sf http://127.0.0.1:8765/api/meta
+          echo "Linux-Test ok"
+      - uses: actions/upload-artifact@v4
+        with: { name: "${{ matrix.target }}", path: dist/*.tar.gz }
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pakete bauen (Apple Silicon und Intel)
+        run: |
+          python3 installer/build_unix.py macos-arm64
+          python3 installer/build_unix.py macos-x86_64
+      - name: App testen
+        run: |
+          set -e
+          hdiutil attach dist/Buchlover-*-macos-arm64.dmg -mountpoint /Volumes/BL -nobrowse
+          cp -R /Volumes/BL/Buchlover.app "$RUNNER_TEMP/"
+          hdiutil detach /Volumes/BL
+          codesign --verify --deep "$RUNNER_TEMP/Buchlover.app"
+          BUCHLOVER_NO_BROWSER=1 "$RUNNER_TEMP/Buchlover.app/Contents/MacOS/Buchlover"
+          for i in $(seq 30); do curl -sf http://127.0.0.1:8765/api/meta && break; sleep 1; done
+          curl -sf http://127.0.0.1:8765/handbuch | grep -q Handbuch
+          test -f "$HOME/Library/Application Support/Buchlover/buchlover.sqlite"
+          curl -sf -X POST http://127.0.0.1:8765/api/shutdown
+          echo "macOS-Test ok"
+      - uses: actions/upload-artifact@v4
+        with: { name: macos, path: dist/*.dmg }
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - name: Image lokal bauen und testen
+        run: |
+          set -e
+          docker build -t buchlover:test .
+          docker run -d --name bl -p 127.0.0.1:8765:8765 buchlover:test
+          for i in $(seq 30); do curl -sf http://127.0.0.1:8765/api/meta && break; sleep 1; done
+          curl -sf http://127.0.0.1:8765/api/meta | grep -q '"can_quit": false'
+          curl -sf http://127.0.0.1:8765/handbuch | grep -q Handbuch
+          curl -sf -X POST -H 'Content-Type: application/json' -d '{"title":"Test"}' http://127.0.0.1:8765/api/books
+          docker stop -t 5 bl
+          docker logs bl
+          echo "Docker-Test ok"
+      - name: Version bestimmen
+        id: v
+        run: echo "version=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' buchlover/__init__.py)" >> "$GITHUB_OUTPUT"
+      - uses: docker/login-action@v3
+        if: env.PUBLISH == 'true'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Image veröffentlichen (amd64 + arm64)
+        if: env.PUBLISH == 'true'
+        uses: docker/build-push-action@v6
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: "false"   # kein .dockerbuild-Artefakt (stört den Release-Download)
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/therapycenter/buchlover:${{ steps.v.outputs.version }}
+            ghcr.io/therapycenter/buchlover:latest
+
+  release:
+    needs: [windows, linux, macos, docker]
+    if: startsWith(github.ref, 'refs/tags/v') || inputs.publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { path: dist, pattern: "{windows,macos,linux-*}", merge-multiple: true }
+      - name: Release erstellen/aktualisieren
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          VER=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' buchlover/__init__.py)
+          TAG="v$VER"
+          ls -la dist
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* --title "Buchlover – OpenSource „Buchliebhaber“ $VER" --notes-file .github/release-notes.md
+          fi

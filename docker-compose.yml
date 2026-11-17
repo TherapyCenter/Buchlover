@@ -1,0 +1,17 @@
+# Start: docker compose up -d   ->  http://localhost:8765
+services:
+  buchlover:
+    image: ghcr.io/therapycenter/buchlover:latest
+    # zum Selberbauen statt "image": build: .
+    container_name: buchlover
+    restart: unless-stopped
+    ports:
+      # nur von diesem Rechner erreichbar; für das ganze Netz "8765:8765" schreiben
+      - "127.0.0.1:8765:8765"
+    volumes:
+      - buchlover-data:/data
+      # Buchliebhaber-Ordner oder Backup-ZIPs hierher legen, Import-Pfad: /import/...
+      - ./import:/import:ro
+
+volumes:
+  buchlover-data:

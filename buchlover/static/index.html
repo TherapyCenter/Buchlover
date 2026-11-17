@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buchlover</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='5' y='4' width='20' height='24' rx='2' fill='%23315c86'/><rect x='9' y='4' width='3' height='24' fill='%2390b4d8'/></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="logo"></span>Buchlover</div>
+  <form id="globalSearch" class="gsearch" autocomplete="off">
+    <input id="q" type="search" placeholder="Suchen … (Alt+S)" aria-label="Suche über alle Bücher">
+    <button type="submit">Suchen</button>
+    <button type="button" id="btnAll" title="Suche, Filter und Gruppe aufheben">Alle Datensätze</button>
+  </form>
+  <div class="spacer"></div>
+  <button id="btnNew" class="primary" title="Neues Buch (Alt+N)">+ Neues Buch</button>
+  <button id="btnTheme" class="icon" title="Hell/Dunkel umschalten" aria-label="Farbschema">◐</button>
+  <a id="btnHelp" class="iconlink" href="/handbuch" target="_blank" title="Handbuch (F1)" aria-label="Handbuch">?</a>
+  <button id="btnQuit" class="icon" title="Buchlover beenden" aria-label="Beenden"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="vertical-align:-2px" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></button>
+</header>
+
+<nav class="tabs" id="tabs" role="tablist">
+  <button data-tab="all" class="active">Alle Bücher</button>
+  <button data-tab="book">Ein Buch</button>
+  <button data-tab="persons">Mitwirkende</button>
+  <button data-tab="reading">Lesehistorie</button>
+  <button data-tab="loans">Verleih</button>
+  <button data-tab="wish">Wunschliste</button>
+  <button data-tab="quotes">Zitate &amp; Schlagwörter</button>
+  <button data-tab="groups">Gruppen</button>
+  <button data-tab="stats">Statistik</button>
+  <button data-tab="tools">Werkzeug</button>
+</nav>
+
+<main>
+<!-- ======================= Alle Bücher ======================= -->
+<section id="tab-all" class="tab active">
+  <div class="toolbar">
+    <span id="viewInfo" class="info"></span>
+    <div class="spacer"></div>
+    <button id="propFilter" title="Nach Eigenschaften filtern">Filtern …</button>
+    <label class="inline">Gruppe
+      <select id="groupFilter" style="max-width:240px"><option value="">–</option></select>
+    </label>
+    <select id="groupMode"><option value="show">nur Gruppe</option><option value="highlight">hervorheben</option></select>
+    <div class="seg" role="group" aria-label="Ansicht">
+      <button id="viewTable" class="on" title="Tabelle">☰</button>
+      <button id="viewTiles" title="Kacheln">▦</button>
+    </div>
+    <button id="btnExportView" title="Aktuelle Ansicht exportieren">Export …</button>
+  </div>
+  <div id="bookTableWrap" class="tablewrap">
+    <table id="bookTable" class="grid"><thead></thead><tbody></tbody></table>
+  </div>
+  <div id="bookTiles" class="tiles hidden"></div>
+</section>
+
+<!-- ======================= Ein Buch ======================= -->
+<section id="tab-book" class="tab">
+  <div id="bookEmpty" class="empty">Kein Buch ausgewählt. Wählen Sie ein Buch in „Alle Bücher“ oder legen Sie ein neues an.</div>
+  <div id="bookView" class="hidden">
+    <div class="toolbar">
+      <button id="prevBook" title="Vorheriges Buch (Alt+←)">◀</button>
+      <button id="nextBook" title="Nächstes Buch (Alt+→)">▶</button>
+      <h2 id="bookHeading"></h2>
+      <div class="spacer"></div>
+      <span id="saveState" class="info"></span>
+      <button id="btnSave" class="primary" title="Speichern (Strg+S)">Speichern</button>
+      <button id="btnLookup" title="Buchdaten über ISBN/EAN oder Autor+Titel abfragen (DNB, Open Library)">Daten abfragen</button>
+      <button id="btnCopy" title="Buch kopieren">Kopieren</button>
+      <button id="btnDelete" class="danger">Löschen</button>
+    </div>
+    <div class="subtabs" id="bookSubtabs">
+      <button data-sub="data" class="active">Daten</button>
+      <button data-sub="reviews">Rezensionen</button>
+      <button data-sub="loan">Verleih / Verkauf</button>
+      <button data-sub="web">Web / Ablage</button>
+      <button data-sub="quotes">Zitate</button>
+    </div>
+
+    <div class="sub active" id="sub-data">
+      <div class="bookgrid">
+        <aside class="coverbox">
+          <div id="coverDrop" class="cover" tabindex="0" title="Bild hierher ziehen, einfügen (Strg+V) oder klicken">
+            <img id="coverImg" alt="">
+            <span id="coverHint">Kein Cover<br><small>Klicken, ziehen oder Strg+V</small></span>
+          </div>
+          <div class="row wrap">
+            <button id="coverUpload">Datei …</button>
+            <button id="coverUrl">Aus URL …</button>
+            <button id="coverDel" class="danger">Entfernen</button>
+          </div>
+          <input id="coverFile" type="file" accept="image/*" hidden>
+          <div class="links" id="webLinks"></div>
+          <div class="meta" id="bookMeta"></div>
+        </aside>
+        <form id="bookForm" class="form" autocomplete="off"></form>
+      </div>
+    </div>
+
+    <div class="sub" id="sub-reviews">
+      <p class="hint">Jeder Eintrag hier zählt als „gelesen“ – daraus entsteht die Lesehistorie.</p>
+      <div id="reviewsList"></div>
+      <button id="addReview" class="primary">+ Rezension / Lesevermerk (Alt+R)</button>
+    </div>
+    <div class="sub" id="sub-loan">
+      <h3>Verleih</h3>
+      <div id="loansList"></div>
+      <button id="addLoan" class="primary">+ Buch verleihen</button>
+      <h3>Verkauf / Erwerb</h3>
+      <form id="saleForm" class="form compact"></form>
+      <h3>Wunschliste</h3>
+      <form id="wishForm" class="form compact"></form>
+    </div>
+    <div class="sub" id="sub-web">
+      <p class="hint">Links (Webseiten, Rezensionen online) und Dateien zum Buch.</p>
+      <div id="attList"></div>
+      <button id="addAtt" class="primary">+ Eintrag</button>
+    </div>
+    <div class="sub" id="sub-quotes">
+      <div id="quoteList"></div>
+      <button id="addQuote" class="primary">+ Zitat / Anmerkung</button>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= Mitwirkende ======================= -->
+<section id="tab-persons" class="tab">
+  <div class="split">
+    <div class="listpane">
+      <div class="row"><input id="personQ" type="search" placeholder="Name filtern …"><button id="personNew">+</button></div>
+      <ul id="personList" class="list"></ul>
+    </div>
+    <div class="detailpane" id="personDetail"><div class="empty">Mitwirkenden auswählen.</div></div>
+  </div>
+</section>
+
+<section id="tab-reading" class="tab"><div id="readingView"></div></section>
+<section id="tab-loans" class="tab"><div id="loansView"></div></section>
+<section id="tab-wish" class="tab"><div id="wishView"></div></section>
+<section id="tab-quotes" class="tab"><div id="quotesView"></div></section>
+
+<!-- ======================= Gruppen ======================= -->
+<section id="tab-groups" class="tab">
+  <div class="split">
+    <div class="listpane"><ul id="groupList" class="list"></ul></div>
+    <div class="detailpane" id="groupDetail"><div class="empty">Gruppe auswählen.</div></div>
+  </div>
+</section>
+
+<section id="tab-stats" class="tab"><div id="statsView"></div></section>
+
+<!-- ======================= Werkzeug ======================= -->
+<section id="tab-tools" class="tab"><div id="toolsView" class="tools"></div></section>
+</main>
+
+<dialog id="dlg"><form method="dialog" id="dlgForm"><h3 id="dlgTitle"></h3><div id="dlgBody"></div>
+  <div class="dlgbtns" id="dlgBtns"></div></form></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>
