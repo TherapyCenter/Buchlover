@@ -142,6 +142,52 @@ function initLang() {
   };
   $("#btnHelp").href = "/handbuch?lang=" + LANG;
   applyI18n();
+  $("#appVer").textContent = "v" + S.meta.version;
+}
+
+// ------------------------------------------------------------ Version / Update
+/** Beim Start (abschaltbar) und auf Knopfdruck: neuere Version auf GitHub? */
+async function checkUpdate(manual) {
+  if (!manual && !isYes(S.meta.settings.update_check)) return null;
+  let u;
+  try {
+    const r = await fetch("/api/update" + (manual ? "?force=1" : ""));
+    u = await r.json();
+    if (!r.ok) throw new Error(tMsg(u.error || r.statusText));
+  } catch (e) { if (manual) toast(t("Update-Prüfung nicht möglich") + ": " + e.message, true); return null; }
+  S.update = u;
+  const b = $("#btnUpdate");
+  b.classList.toggle("hidden", !u.newer);
+  if (u.newer) { b.textContent = "⬆ " + t("Update {v}", { v: u.latest }); b.onclick = updateDialog; }
+  if (manual && !u.newer) toast(t("Buchlover ist aktuell (Version {v}).", { v: u.current }));
+  return u;
+}
+async function updateDialog() {
+  const u = S.update; if (!u) return;
+  const body = h("div", { style: "max-width:640px" },
+    h("p", {}, t("Version {new} ist verfügbar – installiert ist {old}.", { new: u.latest, old: u.current })),
+    u.notes ? h("div", { cls: "relnotes" }, u.notes.replace(/\r/g, "")) : "");
+  let buttons;
+  if (u.can_install) {
+    body.append(h("p", { cls: "hint" }, t("Buchlover lädt den Installer, prüft ihn, beendet sich, installiert das Update und startet danach neu. Ihre Daten bleiben erhalten.")));
+    buttons = [{ label: t("Jetzt aktualisieren"), value: "install", primary: true }, { label: t("Release-Seite"), value: "page" }, { label: t("Später"), value: null }];
+  } else if (u.platform === "docker") {
+    body.append(h("p", {}, t("Im Docker-Betrieb aktualisieren Sie den Container:")), h("div", { cls: "cmd" }, "docker compose pull && docker compose up -d"));
+    buttons = [{ label: t("Release-Seite"), value: "page", primary: true }, { label: t("Schließen"), value: null }];
+  } else {
+    body.append(h("p", { cls: "hint" }, u.asset ? t("Laden Sie das Paket für Ihr System herunter und installieren Sie es wie gewohnt. Ihre Daten bleiben erhalten.") + " (" + u.asset.name + ")" : t("Laden Sie das Paket für Ihr System von der Release-Seite herunter.")));
+    buttons = [...(u.asset ? [{ label: t("Herunterladen"), value: "download", primary: true }] : []), { label: t("Release-Seite"), value: "page", primary: !u.asset }, { label: t("Später"), value: null }];
+  }
+  const r = await dialog(t("Update verfügbar"), body, buttons);
+  const open = (url) => S.meta.window_mode ? api("POST", "/api/open", { url }).then(() => toast(t("Im Browser geöffnet"))) : window.open(url, "_blank", "noopener");
+  if (r === "page") open(u.url);
+  else if (r === "download") open(u.asset.url);
+  else if (r === "install") {
+    await autoSave();
+    toast(t("Update wird geladen …"));
+    try { await api("POST", "/api/update/install"); } catch (e) { return; }
+    document.body.innerHTML = `<div class="empty" style="margin:auto;text-align:center">${esc(t("Das Update wird installiert. Buchlover startet danach automatisch neu – dieses Fenster schließt sich gleich."))}</div>`;
+  }
 }
 
 function showTab(name) {
@@ -178,6 +224,7 @@ async function init() {
   $("#btnExportView").onclick = exportDialog;
   initBookPage();
   initReader();
+  setTimeout(() => checkUpdate(false), 2500);
   document.addEventListener("keydown", globalKeys);
   // Eigenes Programmfenster: externe Links (DNB, Wikipedia …) im normalen Browser öffnen
   document.addEventListener("click", (e) => {
@@ -1513,7 +1560,19 @@ async function loadTools() {
     v.append(h("div", { cls: "panel" }, h("h3", {}, t("Signaturen (aus Buchliebhaber übernommen)")),
       h("div", { cls: "result" }, S.meta.signatures.map((s) => `${"  ".repeat(s.level - 1)}${[s.sig1, s.sig2, s.sig3].filter(Boolean).join(" ")}  ${s.name || ""}`).join("\n"))));
   }
-  v.append(h("p", { cls: "hint" }, `Buchlover ${S.meta.version}`));
+  // Version & Updates
+  const auto = h("input", { type: "checkbox", checked: isYes(st.update_check) });
+  auto.onchange = async () => { await api("PUT", "/api/settings", { update_check: auto.checked ? "Ja" : "Nein" }); await loadMeta(); toast(t("Gespeichert")); };
+  const uOut = h("div", { cls: "hint" });
+  v.append(h("div", { cls: "panel" }, h("h3", {}, t("Programmversion & Updates")),
+    h("p", {}, t("Installierte Version:") + " ", h("strong", {}, S.meta.version)),
+    h("label", { cls: "row" }, auto, t("beim Start nach Updates suchen (fragt nur die Versionsnummer bei GitHub ab)")),
+    h("div", { cls: "row wrap" }, h("button", { onclick: async () => {
+      uOut.textContent = t("Suche läuft …");
+      const u = await checkUpdate(true);
+      uOut.textContent = !u ? "" : u.newer ? t("Version {new} ist verfügbar – installiert ist {old}.", { new: u.latest, old: u.current }) : t("Buchlover ist aktuell (Version {v}).", { v: u.current });
+      if (u?.newer) updateDialog();
+    } }, t("Nach Updates suchen")), uOut)));
 }
 async function afterImport() { S.personsCache = null; await loadMeta(); await loadBooks(); toast(t("Import abgeschlossen")); }
 

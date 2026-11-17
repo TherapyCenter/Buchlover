@@ -189,6 +189,27 @@ das Handbuch **?** und **⏻** zum Beenden. Darunter liegen die Ordner
 (Reiter): Alle Bücher, Ein Buch, Mitwirkende, Lesehistorie, Verleih,
 Wunschliste, Zitate & Schlagwörter, Gruppen, Statistik und Werkzeug.
 
+## Version und Updates
+
+Die installierte Version steht oben links neben „Buchlover“ (z.B. `v1.2.0`)
+und unter **Werkzeug → Programmversion & Updates**.
+
+Beim Start fragt Buchlover bei GitHub nach, ob es eine neuere Version gibt.
+Übertragen wird dabei nur die Anfrage nach der neuesten Versionsnummer – keine
+Daten aus Ihrer Bücherverwaltung. Gibt es ein Update, erscheint oben der grüne
+Knopf **⬆ Update x.y.z**. Ein Klick zeigt, was neu ist, und:
+
+- **Windows:** **Jetzt aktualisieren** lädt den Installer, prüft seine
+  Prüfsumme, beendet Buchlover, installiert das Update und startet Buchlover
+  danach von selbst neu. Ihre Daten bleiben erhalten; ein Buchliebhaber-Import
+  wird dabei nicht wiederholt.
+- **Linux und macOS:** **Herunterladen** lädt das passende Paket, das Sie wie
+  gewohnt installieren.
+- **Docker:** `docker compose pull && docker compose up -d`.
+
+Die automatische Prüfung lässt sich unter **Werkzeug → Programmversion &
+Updates** abschalten; **Nach Updates suchen** prüft dann auf Knopfdruck.
+
 ## Sprache
 
 Buchlover gibt es auf **Deutsch, Englisch, Spanisch, Französisch, Russisch
@@ -458,6 +479,8 @@ Büchern pro Jahr. Den genauen Wert zeigt der Mauszeiger über einem Balken.
   Umbenennung gilt für alle Bücher, die sie haben.
 - **eBook-Bibliothek** – eBook-Ordner festlegen und abgleichen, siehe
   „eBooks“.
+- **Programmversion & Updates** – installierte Version, automatische
+  Update-Prüfung an/aus, **Nach Updates suchen**.
 - **Einstellungen** – Ihr Name (erscheint auf Listen), Feldbezeichnungen,
   Sprache und Rolle für neue Einträge, Löschbestätigung, automatische
   BX-Bildung, automatische ISBN-Abfrage (Ankreuzfelder), maximale Coverhöhe,
@@ -545,8 +568,13 @@ Manche EPUBs enthalten fehlerhaftes XHTML, das der Browser ablehnt. Dann
 **Extern öffnen** (z.B. mit Calibre) benutzen.
 
 **Update installieren.**
-Neue Version wie bei der Erstinstallation einspielen; ein laufendes Buchlover
-wird dabei beendet. Die Daten bleiben erhalten.
+Am einfachsten über den Knopf **⬆ Update** (siehe „Version und Updates“).
+Alternativ die neue Version wie bei der Erstinstallation einspielen; ein
+laufendes Buchlover wird dabei beendet. Die Daten bleiben erhalten.
+
+**Die Update-Prüfung meldet einen Fehler.**
+Ohne Internetverbindung oder wenn GitHub nicht erreichbar ist, erscheint kein
+Update-Hinweis. Buchlover funktioniert trotzdem normal.
 
 ## Deinstallieren
 

@@ -71,13 +71,17 @@ Vorschlagslisten bereits eingegebener Werte, BX automatisch „Nachname, Titel�
 
 * **Mehrsprachig:** Oberfläche auf Deutsch, Englisch, Spanisch, Französisch,
   Russisch und Chinesisch (Auswahl oben rechts)
+* **Updates:** Versionsanzeige, Hinweis auf neue Versionen (abschaltbar),
+  unter Windows Ein-Klick-Update mit automatischem Neustart
 * **eBooks:** eBook-Pfad je Buch (Spalte 📖), Dateiauswahl, „eBook finden“
   in den eBook-Ordnern, eingebauter Leser für EPUB, PDF, TXT/HTML und CBZ
   (Inhaltsverzeichnis, Schriftgröße, Sepia/Dunkel, Leseposition), andere
   Formate über das Standardprogramm, Metadaten und Cover aus EPUB,
   Abgleich ganzer eBook-Bibliotheken (z.B. Calibre)
 * ISBN-/Titel-Abfrage bei **Deutscher Nationalbibliothek** und **Open Library**
-  (Daten, Mitwirkende, Cover, Inhaltstext) – nur auf Knopfdruck
+  (Daten, Mitwirkende, Cover, Inhaltstext) – nur auf Knopfdruck. Ohne
+  Knopfdruck fragt Buchlover nur beim Start die neueste Versionsnummer bei
+  GitHub ab (abschaltbar)
 * Kachelansicht mit Covern, Cover per Drag & Drop / Strg+V / URL
 * Lesestatus, eigene Sterne-Bewertung, Notizen
 * Statistik, Dublettenprüfung, Mitwirkende zusammenführen
@@ -89,6 +93,7 @@ Vorschlagslisten bereits eingegebener Werte, BX automatisch „Nachname, Titel�
 * `buchlover/paradox.py` – Paradox-.DB/.MB-Leser (inkl. Tabellen-Entschlüsselung,
   Chiffriertabellen aus pxlib, GPL-2.0)
 * `buchlover/importer.py` – Import Buchliebhaber / CSV / DBF
+* `buchlover/updates.py` – Update-Prüfung (GitHub-Releases), Ein-Klick-Update unter Windows
 * `buchlover/ebooks.py` – eBooks: EPUB/CBZ-Leser, Dateiauswahl, Suche und Bibliotheksabgleich
 * `buchlover/logic.py` – Suche, Gruppen-Engine, Online-Abfrage, Statistik, Export
 * `buchlover/server.py` – lokaler HTTP-Server + JSON-API

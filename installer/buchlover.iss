@@ -1,6 +1,6 @@
 ; Inno Setup Skript für Buchlover – wird von installer/build.py aufgerufen
 #ifndef AppVer
-  #define AppVer "1.1.0"
+  #define AppVer "1.2.0"
 #endif
 #define AppName "Buchlover"
 #define Port "8765"
@@ -96,6 +96,8 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\python\pythonw.exe"; Paramete
 [Run]
 Filename: "{app}\python\pythonw.exe"; Parameters: "-m buchlover --data ""{localappdata}\Buchlover"" --import ""{code:BlhDir}"" --import-only"; WorkingDir: "{app}"; StatusMsg: "{cm:Importing}"; Flags: runhidden waituntilterminated; Tasks: importblh
 Filename: "{app}\python\pythonw.exe"; Parameters: "-m buchlover --data ""{localappdata}\Buchlover"""; WorkingDir: "{app}"; Description: "{cm:StartNow,{#AppName}}"; Flags: postinstall nowait skipifsilent
+; Ein-Klick-Update aus Buchlover heraus (/SILENT /RESTART=1): danach wieder starten
+Filename: "{app}\python\pythonw.exe"; Parameters: "-m buchlover --data ""{localappdata}\Buchlover"""; WorkingDir: "{app}"; Flags: nowait; Check: RestartAfterUpdate
 
 [UninstallRun]
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""try {{ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:{#Port}/api/shutdown -TimeoutSec 3 }} catch {{}}"""; Flags: runhidden; RunOnceId: "StopServer"
@@ -115,6 +117,11 @@ ru.FinishedLabel=Buchlover установлен. Ваши данные хран�
 function BlhDir(Param: String): String;
 begin
   Result := 'C:\Buchliebhaber';
+end;
+
+function RestartAfterUpdate(): Boolean;
+begin
+  Result := ExpandConstant('{param:RESTART|0}') = '1';
 end;
 
 function BlhExists(): Boolean;

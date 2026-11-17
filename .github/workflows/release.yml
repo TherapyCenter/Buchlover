@@ -48,6 +48,12 @@ jobs:
           # Update bei laufendem Programm muss durchlaufen
           $p = Start-Process $setup -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=`"$inst`"",'/TASKS=""' -Wait -PassThru
           if ($p.ExitCode) { throw "Update bei laufendem Programm: Exit $($p.ExitCode)" }
+          # Ein-Klick-Update aus Buchlover: still installieren, danach startet Buchlover von selbst neu
+          $p = Start-Process $setup -ArgumentList '/SILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=`"$inst`"",'/RESTART=1','/MERGETASKS="!importblh"' -Wait -PassThru
+          if ($p.ExitCode) { throw "Ein-Klick-Update: Exit $($p.ExitCode)" }
+          $ok = $false; foreach ($i in 1..30) { try { Invoke-RestMethod http://127.0.0.1:8765/api/meta | Out-Null; $ok = $true; break } catch { Start-Sleep 1 } }
+          if (-not $ok) { throw "Buchlover startet nach dem Update nicht neu" }
+          "Neustart nach Update ok"
           $u = Start-Process "$inst\unins000.exe" -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES' -Wait -PassThru
           if ($u.ExitCode) { throw "Deinstallation: Exit $($u.ExitCode)" }
           if (-not (Test-Path "$data\buchlover.sqlite")) { throw "Daten fehlen nach Deinstallation" }

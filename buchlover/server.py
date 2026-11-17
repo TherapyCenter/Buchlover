@@ -11,7 +11,7 @@ import traceback
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from . import __version__, ebooks, importer, logic
+from . import __version__, ebooks, importer, logic, updates
 from .db import BOOK_FIELDS, Database, sniff_mime
 from .mdview import markdown_page
 from .window import close_window, open_window
@@ -889,6 +889,26 @@ def _shutdown(h, qs):
         close_window(proc)                 # eigenes Programmfenster mit schließen
         h.server.shutdown()
     threading.Thread(target=stop, daemon=True).start()
+
+
+@route("GET", r"/api/update")
+def _update(h, qs):
+    """Neuere Version auf GitHub? (nur auf Anforderung der Oberfläche)"""
+    try:
+        h._send(200, updates.check(qs.get("force") == "1"))
+    except Exception as e:  # noqa - offline, GitHub nicht erreichbar …
+        raise ApiError(502, f"Update-Prüfung nicht möglich: {e}")
+
+
+@route("POST", r"/api/update/install")
+def _update_install(h, qs):
+    try:
+        r = updates.download_and_install(A(h).data_dir)
+    except ValueError as e:
+        raise ApiError(409, str(e))
+    except Exception as e:  # noqa
+        raise ApiError(502, f"Update fehlgeschlagen: {e}")
+    h._send(200, r)
 
 
 @route("POST", r"/api/books/(\d+)/beacon")

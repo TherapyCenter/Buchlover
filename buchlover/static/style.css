@@ -223,6 +223,14 @@ dialog h3 { margin-top: 0; }
   main { border: none; margin: 0; }
 }
 
+/* ---- Version / Update ---- */
+.brand .ver { font-size: 11px; font-weight: 400; color: var(--muted); margin-left: 2px; cursor: default; }
+button.update { background: #2e7d32; border-color: #2e7d32; color: #fff; font-weight: 600; animation: blpulse 2s ease-in-out 3; }
+button.update:hover { filter: brightness(1.1); border-color: #2e7d32; }
+@keyframes blpulse { 50% { box-shadow: 0 0 0 4px rgba(46,125,50,.25); } }
+.relnotes { white-space: pre-wrap; max-height: 40vh; overflow: auto; font-size: 13px; background: var(--surface2); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
+.cmd { font-family: ui-monospace, Consolas, monospace; background: var(--surface2); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; user-select: all; }
+
 /* ---- Sprache ---- */
 .langsel { padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); max-width: 120px; }
 

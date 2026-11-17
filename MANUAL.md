@@ -33,6 +33,25 @@ window quits Buchlover; unsaved changes are saved first. **⏻** also quits.
 External links open in your normal browser. Buchlover is only reachable from
 this computer (`http://127.0.0.1:8765/`).
 
+## Version and updates
+
+The installed version is shown at the top left next to “Buchlover” (e.g.
+`v1.2.0`) and under **Tools → Program version & updates**.
+
+At startup Buchlover asks GitHub whether a newer version exists – only the
+latest version number is requested, none of your data is sent. If there is an
+update, a green **⬆ Update x.y.z** button appears. Click it to see what is new:
+
+- **Windows:** **Update now** downloads and verifies the installer, closes
+  Buchlover, installs the update and restarts Buchlover. Your data is kept; a
+  Buchliebhaber import is not repeated.
+- **Linux and macOS:** **Download** fetches the matching package; install it
+  as usual.
+- **Docker:** `docker compose pull && docker compose up -d`.
+
+The automatic check can be switched off under **Tools → Program version &
+updates**; **Check for updates** then checks on demand.
+
 ## Language
 
 Choose the language in the selector at the top right (next to **◐**). The

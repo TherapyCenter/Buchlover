@@ -223,6 +223,7 @@ DEFAULT_SETTINGS = {
     "lookup_overwrite": "Nein",
     "bx_from_author": "Ja",
     "ebook_dirs": "",
+    "update_check": "Ja",
 }
 
 
