@@ -14,6 +14,7 @@ import zipfile
 
 from . import paradox
 from .db import Database, sniff_mime
+from .ebooks import EBOOK_EXT
 
 # ---------------------------------------------------------------- utilities
 
@@ -469,6 +470,12 @@ class _Importer:
                     _s(r.get("AWName")), _s(r.get("AWPfad")), _s(r.get("AWBeschreibung")),
                     _s(r.get("AWDatum"))))
                 self.count("Web/Ablage")
+                # Ablage-Eintrag, der auf eine eBook-Datei zeigt -> als eBook-Pfad übernehmen
+                ep = _s(r.get("AWPfad")) or _s(r.get("AWName"))
+                if ep and os.path.splitext(ep)[1].lower() in EBOOK_EXT and c.execute(
+                        "UPDATE books SET ebook_path=? WHERE id=? AND ebook_path IS NULL",
+                        (ep, b)).rowcount:
+                    self.count("eBook-Pfade")
         for r in src.rows("WW12"):
             b = self.bid(r.get("i1201"))
             if b and _s(r.get("A1202")):
@@ -630,6 +637,17 @@ CSV_MAP = {
     "kurzinfo": "notes", "notiz": "notes", "notes": "notes", "buchart": "book_type",
     "zustand": "condition", "barcode": "barcode", "ersterscheinung": "first_published",
     "lesestatus": "read_status", "bewertung": "my_rating",
+    "ebook": "ebook_path", "e-book": "ebook_path", "ebook_path": "ebook_path",
+    "ebookpfad": "ebook_path", "ebook-pfad": "ebook_path", "datei": "ebook_path",
+    "file": "ebook_path", "path": "ebook_path",
+    # englische / interne Spaltennamen (Export anderer Programme, Calibre)
+    "authors": "author", "isbn13": "isbn", "ean13": "ean", "language": "language",
+    "series": "series", "binding": "binding", "format": "binding", "price": "list_price",
+    "list_price": "list_price", "pub_date": "pub_date", "pubdate": "pub_date",
+    "published": "pub_date", "year": "pub_date", "location": "location", "topic": "topic",
+    "subject": "topic", "comments": "notes", "description": "content", "content": "content",
+    "original_title": "original_title", "rating": "my_rating", "read_status": "read_status",
+    "condition": "condition", "edition": "auflage",
 }
 INT_FIELDS = {"pages", "my_rating"}
 

@@ -11,28 +11,29 @@
 <header class="top">
   <div class="brand"><span class="logo"></span>Buchlover</div>
   <form id="globalSearch" class="gsearch" autocomplete="off">
-    <input id="q" type="search" placeholder="Suchen … (Alt+S)" aria-label="Suche über alle Bücher">
-    <button type="submit">Suchen</button>
-    <button type="button" id="btnAll" title="Suche, Filter und Gruppe aufheben">Alle Datensätze</button>
+    <input id="q" type="search" data-i18n-ph="Suchen … (Alt+S)" data-i18n-aria="Suche über alle Bücher" placeholder="Suchen … (Alt+S)">
+    <button type="submit" data-i18n="Suchen">Suchen</button>
+    <button type="button" id="btnAll" data-i18n="Alle Datensätze" data-i18n-title="Suche, Filter und Gruppe aufheben">Alle Datensätze</button>
   </form>
   <div class="spacer"></div>
-  <button id="btnNew" class="primary" title="Neues Buch (Alt+N)">+ Neues Buch</button>
-  <button id="btnTheme" class="icon" title="Hell/Dunkel umschalten" aria-label="Farbschema">◐</button>
-  <a id="btnHelp" class="iconlink" href="/handbuch" target="_blank" title="Handbuch (F1)" aria-label="Handbuch">?</a>
-  <button id="btnQuit" class="icon" title="Buchlover beenden" aria-label="Beenden"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="vertical-align:-2px" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></button>
+  <button id="btnNew" class="primary" data-i18n="+ Neues Buch" data-i18n-title="Neues Buch (Alt+N)">+ Neues Buch</button>
+  <select id="langSel" class="langsel" data-i18n-title="Sprache" data-i18n-aria="Sprache"></select>
+  <button id="btnTheme" class="icon" data-i18n-title="Hell/Dunkel umschalten" data-i18n-aria="Farbschema">◐</button>
+  <a id="btnHelp" class="iconlink" href="/handbuch" target="_blank" data-i18n-title="Handbuch (F1)" data-i18n-aria="Handbuch">?</a>
+  <button id="btnQuit" class="icon" data-i18n-title="Buchlover beenden" data-i18n-aria="Beenden"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="vertical-align:-2px" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></button>
 </header>
 
 <nav class="tabs" id="tabs" role="tablist">
-  <button data-tab="all" class="active">Alle Bücher</button>
-  <button data-tab="book">Ein Buch</button>
-  <button data-tab="persons">Mitwirkende</button>
-  <button data-tab="reading">Lesehistorie</button>
-  <button data-tab="loans">Verleih</button>
-  <button data-tab="wish">Wunschliste</button>
-  <button data-tab="quotes">Zitate &amp; Schlagwörter</button>
-  <button data-tab="groups">Gruppen</button>
-  <button data-tab="stats">Statistik</button>
-  <button data-tab="tools">Werkzeug</button>
+  <button data-tab="all" class="active" data-i18n="Alle Bücher">Alle Bücher</button>
+  <button data-tab="book" data-i18n="Ein Buch">Ein Buch</button>
+  <button data-tab="persons" data-i18n="Mitwirkende">Mitwirkende</button>
+  <button data-tab="reading" data-i18n="Lesehistorie">Lesehistorie</button>
+  <button data-tab="loans" data-i18n="Verleih">Verleih</button>
+  <button data-tab="wish" data-i18n="Wunschliste">Wunschliste</button>
+  <button data-tab="quotes" data-i18n="Zitate &amp; Schlagwörter">Zitate &amp; Schlagwörter</button>
+  <button data-tab="groups" data-i18n="Gruppen">Gruppen</button>
+  <button data-tab="stats" data-i18n="Statistik">Statistik</button>
+  <button data-tab="tools" data-i18n="Werkzeug">Werkzeug</button>
 </nav>
 
 <main>
@@ -41,16 +42,17 @@
   <div class="toolbar">
     <span id="viewInfo" class="info"></span>
     <div class="spacer"></div>
-    <button id="propFilter" title="Nach Eigenschaften filtern">Filtern …</button>
-    <label class="inline">Gruppe
+    <label class="inline"><input type="checkbox" id="onlyEbooks"> <span data-i18n="nur eBooks">nur eBooks</span></label>
+    <button id="propFilter" data-i18n="Filtern …" data-i18n-title="Nach Eigenschaften filtern">Filtern …</button>
+    <label class="inline"><span data-i18n="Gruppe">Gruppe</span>
       <select id="groupFilter" style="max-width:240px"><option value="">–</option></select>
     </label>
-    <select id="groupMode"><option value="show">nur Gruppe</option><option value="highlight">hervorheben</option></select>
-    <div class="seg" role="group" aria-label="Ansicht">
-      <button id="viewTable" class="on" title="Tabelle">☰</button>
-      <button id="viewTiles" title="Kacheln">▦</button>
+    <select id="groupMode"><option value="show" data-i18n="nur Gruppe">nur Gruppe</option><option value="highlight" data-i18n="hervorheben">hervorheben</option></select>
+    <div class="seg" role="group" data-i18n-aria="Ansicht">
+      <button id="viewTable" class="on" data-i18n-title="Tabelle">☰</button>
+      <button id="viewTiles" data-i18n-title="Kacheln">▦</button>
     </div>
-    <button id="btnExportView" title="Aktuelle Ansicht exportieren">Export …</button>
+    <button id="btnExportView" data-i18n="Export …" data-i18n-title="Aktuelle Ansicht exportieren">Export …</button>
   </div>
   <div id="bookTableWrap" class="tablewrap">
     <table id="bookTable" class="grid"><thead></thead><tbody></tbody></table>
@@ -60,38 +62,39 @@
 
 <!-- ======================= Ein Buch ======================= -->
 <section id="tab-book" class="tab">
-  <div id="bookEmpty" class="empty">Kein Buch ausgewählt. Wählen Sie ein Buch in „Alle Bücher“ oder legen Sie ein neues an.</div>
+  <div id="bookEmpty" class="empty" data-i18n="Kein Buch ausgewählt. Wählen Sie ein Buch in „Alle Bücher“ oder legen Sie ein neues an.">Kein Buch ausgewählt. Wählen Sie ein Buch in „Alle Bücher“ oder legen Sie ein neues an.</div>
   <div id="bookView" class="hidden">
     <div class="toolbar">
-      <button id="prevBook" title="Vorheriges Buch (Alt+←)">◀</button>
-      <button id="nextBook" title="Nächstes Buch (Alt+→)">▶</button>
+      <button id="prevBook" data-i18n-title="Vorheriges Buch (Alt+←)">◀</button>
+      <button id="nextBook" data-i18n-title="Nächstes Buch (Alt+→)">▶</button>
       <h2 id="bookHeading"></h2>
       <div class="spacer"></div>
       <span id="saveState" class="info"></span>
-      <button id="btnSave" class="primary" title="Speichern (Strg+S)">Speichern</button>
-      <button id="btnLookup" title="Buchdaten über ISBN/EAN oder Autor+Titel abfragen (DNB, Open Library)">Daten abfragen</button>
-      <button id="btnCopy" title="Buch kopieren">Kopieren</button>
-      <button id="btnDelete" class="danger">Löschen</button>
+      <button id="btnRead" class="hidden" data-i18n="📖 Lesen" data-i18n-title="eBook lesen (Alt+L)">📖 Lesen</button>
+      <button id="btnSave" class="primary" data-i18n="Speichern" data-i18n-title="Speichern (Strg+S)">Speichern</button>
+      <button id="btnLookup" data-i18n="Daten abfragen" data-i18n-title="Buchdaten über ISBN/EAN oder Autor+Titel abfragen (DNB, Open Library)">Daten abfragen</button>
+      <button id="btnCopy" data-i18n="Kopieren" data-i18n-title="Buch kopieren">Kopieren</button>
+      <button id="btnDelete" class="danger" data-i18n="Löschen">Löschen</button>
     </div>
     <div class="subtabs" id="bookSubtabs">
-      <button data-sub="data" class="active">Daten</button>
-      <button data-sub="reviews">Rezensionen</button>
-      <button data-sub="loan">Verleih / Verkauf</button>
-      <button data-sub="web">Web / Ablage</button>
-      <button data-sub="quotes">Zitate</button>
+      <button data-sub="data" class="active" data-label="Daten">Daten</button>
+      <button data-sub="reviews" data-label="Rezensionen">Rezensionen</button>
+      <button data-sub="loan" data-label="Verleih / Verkauf">Verleih / Verkauf</button>
+      <button data-sub="web" data-label="Web / Ablage">Web / Ablage</button>
+      <button data-sub="quotes" data-label="Zitate">Zitate</button>
     </div>
 
     <div class="sub active" id="sub-data">
       <div class="bookgrid">
         <aside class="coverbox">
-          <div id="coverDrop" class="cover" tabindex="0" title="Bild hierher ziehen, einfügen (Strg+V) oder klicken">
+          <div id="coverDrop" class="cover" tabindex="0" data-i18n-title="Bild hierher ziehen, einfügen (Strg+V) oder klicken">
             <img id="coverImg" alt="">
-            <span id="coverHint">Kein Cover<br><small>Klicken, ziehen oder Strg+V</small></span>
+            <span id="coverHint"><span data-i18n="Kein Cover">Kein Cover</span><br><small data-i18n="Klicken, ziehen oder Strg+V">Klicken, ziehen oder Strg+V</small></span>
           </div>
           <div class="row wrap">
-            <button id="coverUpload">Datei …</button>
-            <button id="coverUrl">Aus URL …</button>
-            <button id="coverDel" class="danger">Entfernen</button>
+            <button id="coverUpload" data-i18n="Datei …">Datei …</button>
+            <button id="coverUrl" data-i18n="Aus URL …">Aus URL …</button>
+            <button id="coverDel" class="danger" data-i18n="Entfernen">Entfernen</button>
           </div>
           <input id="coverFile" type="file" accept="image/*" hidden>
           <div class="links" id="webLinks"></div>
@@ -102,27 +105,27 @@
     </div>
 
     <div class="sub" id="sub-reviews">
-      <p class="hint">Jeder Eintrag hier zählt als „gelesen“ – daraus entsteht die Lesehistorie.</p>
+      <p class="hint" data-i18n="Jeder Eintrag hier zählt als „gelesen“ – daraus entsteht die Lesehistorie.">Jeder Eintrag hier zählt als „gelesen“ – daraus entsteht die Lesehistorie.</p>
       <div id="reviewsList"></div>
-      <button id="addReview" class="primary">+ Rezension / Lesevermerk (Alt+R)</button>
+      <button id="addReview" class="primary" data-i18n="+ Rezension / Lesevermerk (Alt+R)">+ Rezension / Lesevermerk (Alt+R)</button>
     </div>
     <div class="sub" id="sub-loan">
-      <h3>Verleih</h3>
+      <h3 data-i18n="Verleih">Verleih</h3>
       <div id="loansList"></div>
-      <button id="addLoan" class="primary">+ Buch verleihen</button>
-      <h3>Verkauf / Erwerb</h3>
+      <button id="addLoan" class="primary" data-i18n="+ Buch verleihen">+ Buch verleihen</button>
+      <h3 data-i18n="Verkauf / Erwerb">Verkauf / Erwerb</h3>
       <form id="saleForm" class="form compact"></form>
-      <h3>Wunschliste</h3>
+      <h3 data-i18n="Wunschliste">Wunschliste</h3>
       <form id="wishForm" class="form compact"></form>
     </div>
     <div class="sub" id="sub-web">
-      <p class="hint">Links (Webseiten, Rezensionen online) und Dateien zum Buch.</p>
+      <p class="hint" data-i18n="Links (Webseiten, Rezensionen online) und Dateien zum Buch.">Links (Webseiten, Rezensionen online) und Dateien zum Buch.</p>
       <div id="attList"></div>
-      <button id="addAtt" class="primary">+ Eintrag</button>
+      <button id="addAtt" class="primary" data-i18n="+ Eintrag">+ Eintrag</button>
     </div>
     <div class="sub" id="sub-quotes">
       <div id="quoteList"></div>
-      <button id="addQuote" class="primary">+ Zitat / Anmerkung</button>
+      <button id="addQuote" class="primary" data-i18n="+ Zitat / Anmerkung">+ Zitat / Anmerkung</button>
     </div>
   </div>
 </section>
@@ -131,10 +134,10 @@
 <section id="tab-persons" class="tab">
   <div class="split">
     <div class="listpane">
-      <div class="row"><input id="personQ" type="search" placeholder="Name filtern …"><button id="personNew">+</button></div>
+      <div class="row"><input id="personQ" type="search" data-i18n-ph="Name filtern …" placeholder="Name filtern …"><button id="personNew">+</button></div>
       <ul id="personList" class="list"></ul>
     </div>
-    <div class="detailpane" id="personDetail"><div class="empty">Mitwirkenden auswählen.</div></div>
+    <div class="detailpane" id="personDetail"><div class="empty" data-i18n="Mitwirkenden auswählen.">Mitwirkenden auswählen.</div></div>
   </div>
 </section>
 
@@ -147,7 +150,7 @@
 <section id="tab-groups" class="tab">
   <div class="split">
     <div class="listpane"><ul id="groupList" class="list"></ul></div>
-    <div class="detailpane" id="groupDetail"><div class="empty">Gruppe auswählen.</div></div>
+    <div class="detailpane" id="groupDetail"><div class="empty" data-i18n="Gruppe auswählen.">Gruppe auswählen.</div></div>
   </div>
 </section>
 
@@ -157,9 +160,31 @@
 <section id="tab-tools" class="tab"><div id="toolsView" class="tools"></div></section>
 </main>
 
+<!-- ======================= eBook-Leser ======================= -->
+<div id="reader" class="reader hidden" role="dialog" aria-modal="true" data-i18n-aria="eBook-Leser">
+  <div class="rbar">
+    <button id="rClose" data-i18n-title="Schließen (Esc)" data-i18n-aria="Schließen">✕</button>
+    <strong id="rTitle" class="rtitle"></strong>
+    <select id="rToc" data-i18n-title="Inhaltsverzeichnis"></select>
+    <div class="spacer"></div>
+    <span id="rPos" class="info"></span>
+    <button id="rPrev" data-i18n-title="Zurück (←)">◀</button>
+    <button id="rNext" data-i18n-title="Weiter (→)">▶</button>
+    <button id="rSmaller" data-i18n-title="Schrift kleiner">A−</button>
+    <button id="rBigger" data-i18n-title="Schrift größer">A+</button>
+    <button id="rTheme" data-i18n-title="Lesemodus: Hell / Sepia / Dunkel">◐</button>
+    <button id="rExternal" data-i18n="Extern öffnen" data-i18n-title="Mit dem Standardprogramm des Systems öffnen">Extern öffnen</button>
+  </div>
+  <div class="rbody">
+    <iframe id="rFrame" title="eBook" sandbox="allow-same-origin allow-downloads"></iframe>
+    <div id="rMsg" class="empty hidden"></div>
+  </div>
+</div>
+
 <dialog id="dlg"><form method="dialog" id="dlgForm"><h3 id="dlgTitle"></h3><div id="dlgBody"></div>
   <div class="dlgbtns" id="dlgBtns"></div></form></dialog>
 <div id="toast" role="status" aria-live="polite"></div>
+<script src="i18n.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

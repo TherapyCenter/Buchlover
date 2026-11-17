@@ -1,10 +1,12 @@
 # Buchlover – OpenSource „Buchliebhaber“
 
+🌐 Deutsch · English · Español · Français · Русский · 中文 — *[English manual](MANUAL.md)*
+
 Freie Bücherverwaltung im eigenen Programmfenster für Windows, Linux, macOS
 und Docker. Liest die vorhandenen Paradox-Datenbanken des Buchliebhabers direkt
 ein – ohne Paradox/BDE.
 
-**[Handbuch](HANDBUCH.md)** · **[Downloads (Releases)](https://github.com/TherapyCenter/Buchlover/releases)**
+**[Handbuch](HANDBUCH.md)** · **[Manual (English)](MANUAL.md)** · **[Downloads (Releases)](https://github.com/TherapyCenter/Buchlover/releases)**
 
 ## Installation
 
@@ -67,6 +69,13 @@ Vorschlagslisten bereits eingegebener Werte, BX automatisch „Nachname, Titel�
 
 ## Erweiterungen
 
+* **Mehrsprachig:** Oberfläche auf Deutsch, Englisch, Spanisch, Französisch,
+  Russisch und Chinesisch (Auswahl oben rechts)
+* **eBooks:** eBook-Pfad je Buch (Spalte 📖), Dateiauswahl, „eBook finden“
+  in den eBook-Ordnern, eingebauter Leser für EPUB, PDF, TXT/HTML und CBZ
+  (Inhaltsverzeichnis, Schriftgröße, Sepia/Dunkel, Leseposition), andere
+  Formate über das Standardprogramm, Metadaten und Cover aus EPUB,
+  Abgleich ganzer eBook-Bibliotheken (z.B. Calibre)
 * ISBN-/Titel-Abfrage bei **Deutscher Nationalbibliothek** und **Open Library**
   (Daten, Mitwirkende, Cover, Inhaltstext) – nur auf Knopfdruck
 * Kachelansicht mit Covern, Cover per Drag & Drop / Strg+V / URL
@@ -80,9 +89,11 @@ Vorschlagslisten bereits eingegebener Werte, BX automatisch „Nachname, Titel�
 * `buchlover/paradox.py` – Paradox-.DB/.MB-Leser (inkl. Tabellen-Entschlüsselung,
   Chiffriertabellen aus pxlib, GPL-2.0)
 * `buchlover/importer.py` – Import Buchliebhaber / CSV / DBF
+* `buchlover/ebooks.py` – eBooks: EPUB/CBZ-Leser, Dateiauswahl, Suche und Bibliotheksabgleich
 * `buchlover/logic.py` – Suche, Gruppen-Engine, Online-Abfrage, Statistik, Export
 * `buchlover/server.py` – lokaler HTTP-Server + JSON-API
-* `buchlover/static/` – Oberfläche (HTML/CSS/JS, ohne Fremdbibliotheken)
+* `buchlover/static/` – Oberfläche (HTML/CSS/JS, ohne Fremdbibliotheken),
+  Übersetzungen in `static/i18n.js`
 * `buchlover/mdview.py` – Anzeige des Handbuchs in der Oberfläche
 * `buchlover/window.py` – eigenes Programmfenster (App-Modus von Edge/Chrome), Fenster schließen = beenden
 * `installer/` – Windows-Installer (`build.py`, Inno Setup) und Linux/macOS-Pakete (`build_unix.py`)

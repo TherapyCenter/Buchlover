@@ -12,6 +12,8 @@ services:
       - buchlover-data:/data
       # Buchliebhaber-Ordner oder Backup-ZIPs hierher legen, Import-Pfad: /import/...
       - ./import:/import:ro
+      # eBook-Ordner (in Buchlover unter Werkzeug → eBook-Bibliothek: /ebooks)
+      - ./ebooks:/ebooks:ro
 
 volumes:
   buchlover-data:

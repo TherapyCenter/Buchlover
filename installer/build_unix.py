@@ -64,7 +64,8 @@ def extract_python(tgz, dest):
 def copy_app(dest):
     shutil.copytree(os.path.join(ROOT, "buchlover"), os.path.join(dest, "buchlover"),
                     ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
-    shutil.copy2(os.path.join(ROOT, "HANDBUCH.md"), dest)
+    for f in ("HANDBUCH.md", "MANUAL.md"):
+        shutil.copy2(os.path.join(ROOT, f), dest)
 
 
 def write(path, text, exe=False):
@@ -140,7 +141,7 @@ def build_linux(target, ver):
     os.makedirs(stage)
     extract_python(fetch_python(target), stage)          # -> stage/python
     copy_app(os.path.join(stage, "app"))
-    for f in ("README.md", "LICENSE", "HANDBUCH.md"):
+    for f in ("README.md", "LICENSE", "HANDBUCH.md", "MANUAL.md"):
         shutil.copy2(os.path.join(ROOT, f), stage)
     with open(os.path.join(stage, "buchlover.png"), "wb") as f:
         f.write(make_icon.png(256))
@@ -204,7 +205,7 @@ def build_macos(target, ver):
             "LSUIElement": True, "NSHighResolutionCapable": True,
             "CFBundleDevelopmentRegion": "de",
         }, f)
-    for f in ("README.md", "LICENSE", "HANDBUCH.md"):
+    for f in ("README.md", "LICENSE", "HANDBUCH.md", "MANUAL.md"):
         shutil.copy2(os.path.join(ROOT, f), work)
     os.makedirs(os.path.join(ROOT, "dist"), exist_ok=True)
     if sys.platform != "darwin":

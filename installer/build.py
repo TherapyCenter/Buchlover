@@ -63,8 +63,9 @@ def stage(pyzip):
         f.write(f"{zipname}\n.\n..\\app\n")
     shutil.copytree(os.path.join(ROOT, "buchlover"), os.path.join(STAGE, "app", "buchlover"),
                     ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
-    shutil.copy2(os.path.join(ROOT, "HANDBUCH.md"), os.path.join(STAGE, "app"))
-    for f in ("README.md", "LICENSE", "HANDBUCH.md"):
+    for f in ("HANDBUCH.md", "MANUAL.md"):
+        shutil.copy2(os.path.join(ROOT, f), os.path.join(STAGE, "app"))
+    for f in ("README.md", "LICENSE", "HANDBUCH.md", "MANUAL.md"):
         shutil.copy2(os.path.join(ROOT, f), STAGE)
     ico = os.path.join(HERE, "buchlover.ico")
     if not os.path.exists(ico):

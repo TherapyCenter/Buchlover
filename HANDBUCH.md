@@ -189,6 +189,19 @@ das Handbuch **?** und **⏻** zum Beenden. Darunter liegen die Ordner
 (Reiter): Alle Bücher, Ein Buch, Mitwirkende, Lesehistorie, Verleih,
 Wunschliste, Zitate & Schlagwörter, Gruppen, Statistik und Werkzeug.
 
+## Sprache
+
+Buchlover gibt es auf **Deutsch, Englisch, Spanisch, Französisch, Russisch
+und Chinesisch**. Die Sprache wählen Sie oben rechts im Auswahlfeld neben
+**◐**; Buchlover lädt die Oberfläche dann neu und merkt sich die Wahl. Beim
+ersten Start richtet sich die Sprache nach dem Browser bzw. System.
+
+Übersetzt werden Oberfläche, Meldungen und die mitgelieferten Standardwerte
+(z.B. Lesestatus, Rollen, Eigenschaften). Ihre eigenen Einträge – Bücher,
+Auswahllisten, eigene Eigenschaften und Feldbezeichnungen – bleiben, wie Sie
+sie geschrieben haben. Das Handbuch gibt es auf Deutsch und Englisch; bei allen
+anderen Sprachen öffnet **?** das englische Handbuch.
+
 ## Ordner „Alle Bücher“
 
 Die Tabelle zeigt alle – bzw. die gesuchten, gefilterten oder gruppierten –
@@ -304,6 +317,76 @@ unter **Werkzeug → Eigenschaften definieren** an.
   Rezensionen im Netz, PDF …).
 - **Zitate** – Zitate oder Anmerkungen mit Beschreibung.
 
+## eBooks
+
+Zu jedem Buch lässt sich eine eBook-Datei hinterlegen. Im Ordner „Ein Buch“
+steht dafür der Abschnitt **eBook** mit dem Feld **eBook-Datei (Pfad)**.
+
+- **📂 Durchsuchen …** öffnet eine Dateiauswahl: oben die Orte (persönlicher
+  Ordner, Dokumente, Laufwerke), darunter Ordner und eBook-Dateien.
+  Doppelklick öffnet einen Ordner bzw. übernimmt eine Datei. Den Pfad können
+  Sie auch direkt eintippen oder einfügen.
+- **🔍 eBook finden** sucht in den eBook-Ordnern (siehe unten) nach einer
+  passenden Datei – über die ISBN aus den EPUB-Metadaten oder im Dateinamen,
+  sonst über Titel und Autor. Die Treffer stehen mit Übereinstimmung in Prozent
+  zur Auswahl; ein anderer Ordner lässt sich im Dialog angeben.
+- **📖 Lesen** (oder **Alt+L**, auch in „Alle Bücher“ auf der markierten
+  Zeile) öffnet den eingebauten Leser.
+- **Extern öffnen** öffnet die Datei mit dem Standardprogramm des Systems
+  (z.B. Calibre, Kindle, Adobe Reader). **Herunterladen** speichert eine Kopie.
+- **Daten aus eBook übernehmen** liest Titel, Autor, ISBN, Verlag, Jahr,
+  Sprache, Schlagwörter, Beschreibung und das Cover aus einem EPUB.
+- **✕** löst nur die Verknüpfung, die Datei bleibt unangetastet.
+
+Unter dem Feld steht, ob die Datei gefunden wurde (Format, Größe, Kapitel).
+In „Alle Bücher“ zeigt die Spalte **📖** Bücher mit eBook – ein Klick darauf
+öffnet den Leser. **nur eBooks** in der Werkzeugleiste blendet alle anderen
+Bücher aus, und das Suchfeld „eBook“ durchsucht die Pfade.
+
+### Der eBook-Leser
+
+| Format | Anzeige |
+|--------|---------|
+| EPUB | eingebauter Leser mit Inhaltsverzeichnis, Kapitelweise |
+| PDF | PDF-Betrachter von Edge/Chrome |
+| TXT, Markdown, HTML | eingebauter Leser |
+| CBZ (Comics) | Seite für Seite |
+| MOBI, AZW3, FB2, DJVU, DOCX … | Standardprogramm des Systems |
+
+Im Leser blättern **→ / ←**, **Bild↑/Bild↓** oder die Leertaste seitenweise;
+am Kapitelende geht es mit dem nächsten Kapitel weiter. **A− / A+** ändern die
+Schriftgröße, **◐** schaltet zwischen Hell, Sepia und Dunkel. Das
+Auswahlfeld oben springt zu einem Kapitel. Die Leseposition wird je Buch
+gespeichert, beim nächsten Öffnen geht es dort weiter. **Esc** schließt den
+Leser. Skripte in eBooks werden aus Sicherheitsgründen nicht ausgeführt.
+
+### eBook-Bibliothek abgleichen
+
+Unter **Werkzeug → eBook-Bibliothek** tragen Sie die Ordner mit Ihren eBooks
+ein (einer pro Zeile, **📂 Ordner hinzufügen …**). Unterordner werden
+mitdurchsucht, eine Calibre-Bibliothek funktioniert also direkt.
+
+- **Abgleich – Vorschau** zeigt, welche Dateien zu welchen Büchern passen
+  (ISBN, sonst Titel und Autor) und welche Dateien kein Buch haben.
+- **Zuordnen** trägt die Pfade bei den passenden Büchern ein. Mit
+  „eBooks ohne passendes Buch als neue Bücher anlegen“ entstehen für die
+  übrigen Dateien neue Bücher mit Titel, Autor, ISBN, Verlag, Beschreibung,
+  Schlagwörtern und Cover aus dem EPUB (Bindung „eBook“).
+
+Ist kein Ordner eingetragen, sucht „eBook finden“ in den üblichen Ordnern des
+persönlichen Verzeichnisses (Dokumente, Downloads, eBooks, Calibre Library …).
+
+Beim Import aus dem Buchliebhaber werden Einträge aus „Web/Ablage“, die auf
+eine eBook-Datei zeigen, automatisch als eBook-Pfad übernommen. Im Unterordner
+„Web / Ablage“ übernimmt **als eBook übernehmen** einen solchen Dateipfad
+auch nachträglich.
+
+> Buchlover speichert nur den **Pfad** zur Datei, nicht das eBook selbst. Das
+> Backup enthält deshalb keine eBook-Dateien – sichern Sie Ihren eBook-Ordner
+> separat. Wird der Ordner verschoben, hilft „Zuordnen“ bzw. „eBook finden“.
+> Unter Docker sieht Buchlover nur eingebundene Ordner (z.B. `/ebooks`, siehe
+> `docker-compose.yml`); „Extern öffnen“ ist dort nicht verfügbar.
+
 ## Ordner „Mitwirkende“
 
 Links die Liste aller Personen mit Anzahl ihrer Bücher, oben ein Filterfeld,
@@ -373,11 +456,13 @@ Büchern pro Jahr. Den genauen Wert zeigt der Mauszeiger über einem Balken.
   **Backup erstellen**.
 - **Eigenschaften definieren** – 30 frei benennbare Eigenschaften. Eine
   Umbenennung gilt für alle Bücher, die sie haben.
+- **eBook-Bibliothek** – eBook-Ordner festlegen und abgleichen, siehe
+  „eBooks“.
 - **Einstellungen** – Ihr Name (erscheint auf Listen), Feldbezeichnungen,
   Sprache und Rolle für neue Einträge, Löschbestätigung, automatische
-  BX-Bildung, automatische ISBN-Abfrage, maximale Coverhöhe, Backup-Ordner und
-  bis zu zwei eigene Shop-Links (Such-URL, an die der Suchbegriff angehängt
-  wird). Werte „Ja“/„Nein“ bitte genau so schreiben.
+  BX-Bildung, automatische ISBN-Abfrage (Ankreuzfelder), maximale Coverhöhe,
+  Währung für die Statistik, Backup-Ordner und bis zu zwei eigene Shop-Links
+  (Such-URL, an die der Suchbegriff angehängt wird).
 - **Auswahllisten** – die Vorschlagslisten für Rollen, Bindung, Buchart,
   Sprache, Zustand und Lesestatus (ein Eintrag pro Zeile).
 - **Dublettenprüfung** – findet Bücher mit gleicher ISBN/EAN oder gleichem
@@ -390,7 +475,7 @@ Büchern pro Jahr. Den genauen Wert zeigt der Mauszeiger über einem Balken.
 `JJJJMMTT_HHMM_buchlover.zip` an – standardmäßig im Unterordner `backup` des
 Datenordners, oder im Ordner aus den Einstellungen. Sie enthält die komplette
 Datenbank mit allen Bildern. Bewahren Sie Backups auch auf einem anderen
-Datenträger auf.
+Datenträger auf. eBook-Dateien sind nicht enthalten, nur ihre Pfade.
 
 **Wiederherstellen:**
 1. Buchlover beenden (Fenster schließen oder **⏻**).
@@ -411,6 +496,8 @@ kopieren – auch zwischen Windows, Linux, macOS und Docker.
 | Strg+S | Buch speichern |
 | Alt+← / Alt+→ | vorheriges / nächstes Buch |
 | Alt+R | neue Rezension zum Buch |
+| Alt+L | eBook lesen |
+| ← / →, Leertaste, Esc | im eBook-Leser blättern, Leser schließen |
 | ↑ / ↓, Enter | in der Tabelle wandern, Buch öffnen |
 | Strg+V | Bild aus der Zwischenablage als Cover einfügen (Ordner „Ein Buch“) |
 
@@ -447,6 +534,15 @@ in LibreOffice beim Öffnen „UTF-8“ wählen.
 und Titel. Für die Abfrage ist eine Internetverbindung nötig; es werden nur
 der Suchbegriff bzw. die ISBN an die Deutsche Nationalbibliothek und Open
 Library übermittelt.
+
+**Das eBook wird nicht gefunden.**
+Der gespeicherte Pfad stimmt nicht mehr (Datei verschoben, anderes Laufwerk,
+anderer Rechner). **eBook finden** oder **Werkzeug → eBook-Bibliothek →
+Zuordnen** stellt die Verknüpfung wieder her.
+
+**Ein EPUB wird nicht richtig angezeigt.**
+Manche EPUBs enthalten fehlerhaftes XHTML, das der Browser ablehnt. Dann
+**Extern öffnen** (z.B. mit Calibre) benutzen.
 
 **Update installieren.**
 Neue Version wie bei der Erstinstallation einspielen; ein laufendes Buchlover

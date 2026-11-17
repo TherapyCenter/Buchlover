@@ -11,7 +11,7 @@ import traceback
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from . import __version__, importer, logic
+from . import __version__, ebooks, importer, logic
 from .db import BOOK_FIELDS, Database, sniff_mime
 from .mdview import markdown_page
 from .window import close_window, open_window
@@ -32,7 +32,8 @@ SALE_FIELDS = ["sale_place", "sale_price", "shipping", "postage", "weight", "dim
                "purchase_source"]
 LIST_COLUMNS = ["id", "author", "title", "bx", "ax", "class", "location", "pub_date",
                 "publisher", "isbn", "ean", "barcode", "binding", "series", "language",
-                "read_status", "my_rating", "properties", "updated_at", "created_at", "pages"]
+                "read_status", "my_rating", "properties", "updated_at", "created_at", "pages",
+                "ebook_path"]
 SORTABLE = set(LIST_COLUMNS) | {"fundstelle"}
 
 
@@ -266,7 +267,8 @@ def route(method, pattern):
 
 class Handler(BaseHTTPRequestHandler):
     app: App = None
-    server_version = "Buchlover/1.0"
+    local_only = False
+    server_version = f"Buchlover/{__version__}"
 
     def log_message(self, fmt, *args):  # quiet
         pass
@@ -286,6 +288,22 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_file(self, path, ctype, headers=None):
+        size = os.path.getsize(path)
+        self.send_response(200)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(size))
+        self.send_header("Cache-Control", "no-store")
+        for k, v in (headers or {}).items():
+            self.send_header(k, v)
+        self.end_headers()
+        with open(path, "rb") as fh:
+            while True:
+                chunk = fh.read(1 << 20)
+                if not chunk:
+                    break
+                self.wfile.write(chunk)
+
     def _body(self):
         n = int(self.headers.get("Content-Length") or 0)
         return self.rfile.read(n) if n else b""
@@ -295,6 +313,11 @@ class Handler(BaseHTTPRequestHandler):
         return json.loads(b.decode("utf-8")) if b else {}
 
     def _dispatch(self, method):
+        # Schutz gegen DNS-Rebinding: lokal gebundener Server antwortet nur auf lokale Namen
+        if self.local_only:
+            hostname = urllib.parse.urlsplit("//" + self.headers.get("Host", "")).hostname or ""
+            if hostname not in ("127.0.0.1", "localhost", "::1"):
+                return self._send(403, {"error": "Fremder Ursprung"})
         # Nur lokale Zugriffe von der eigenen Oberfläche zulassen (CSRF-Schutz)
         if method != "GET":
             origin = self.headers.get("Origin")
@@ -825,7 +848,8 @@ def _export(h, qs, kind):
         h._send(200, body, "text/csv; charset=utf-8",
                 {"Content-Disposition": 'attachment; filename="buchliste.csv"'})
     else:
-        body = logic.export_html(A(h).db, ids, d.get("title") or "Bücherliste")
+        lang = re.sub(r"[^a-z]", "", str(d.get("lang") or "de"))[:5] or "de"
+        body = logic.export_html(A(h).db, ids, d.get("title") or "Bücherliste", lang=lang)
         h._send(200, body, "text/html; charset=utf-8",
                 {"Content-Disposition": 'attachment; filename="buchliste.html"'})
 
@@ -839,11 +863,17 @@ def _backup(h, qs):
 
 @route("GET", r"/handbuch")
 def _handbook(h, qs):
-    for p in (os.path.join(HERE, "HANDBUCH.md"), os.path.join(os.path.dirname(HERE), "HANDBUCH.md")):
-        if os.path.isfile(p):
-            with open(p, encoding="utf-8") as fh:
-                return h._send(200, markdown_page(fh.read(), "Handbuch – Buchlover"),
-                               "text/html; charset=utf-8")
+    """Handbuch: Deutsch (HANDBUCH.md), für alle anderen Sprachen Englisch (MANUAL.md)."""
+    lang = qs.get("lang") or (A(h).db.settings().get("ui_language") or "de")
+    names = [("HANDBUCH.md", "Handbuch – Buchlover", "de")]
+    if lang != "de":
+        names.insert(0, ("MANUAL.md", "Manual – Buchlover", "en"))
+    for name, title, hl in names:
+        for p in (os.path.join(HERE, name), os.path.join(os.path.dirname(HERE), name)):
+            if os.path.isfile(p):
+                with open(p, encoding="utf-8") as fh:
+                    return h._send(200, markdown_page(fh.read(), title, hl),
+                                   "text/html; charset=utf-8")
     h._send(404, "Handbuch nicht gefunden", "text/plain; charset=utf-8")
 
 
@@ -878,6 +908,165 @@ def _open_external(h, qs):
     wb.open(url)
     h._send(200, {"ok": True})
 
+
+# --- eBooks -----------------------------------------------------------------
+EPUB_CSP = ("default-src 'self' data: blob:; script-src 'none'; object-src 'none'; "
+            "style-src 'self' 'unsafe-inline' data:; img-src 'self' data: blob:; "
+            "font-src 'self' data:; media-src 'self' data:; frame-src 'none'")
+
+
+def _ebook_path(h, bid, must_exist=True):
+    r = A(h).db.one("SELECT ebook_path FROM books WHERE id=?", (int(bid),))
+    if not r:
+        raise ApiError(404, "Buch nicht gefunden")
+    p = ebooks.norm_path(r["ebook_path"])
+    if not p:
+        raise ApiError(404, "Kein eBook hinterlegt")
+    if must_exist and not os.path.isfile(p):
+        raise ApiError(404, "eBook-Datei nicht gefunden")
+    return p
+
+
+def _ebook_dirs(db, extra=None):
+    raw = db.settings().get("ebook_dirs") or ""
+    dirs = [d.strip() for d in re.split(r"[;\n]", raw) if d.strip()]
+    if extra:
+        dirs = [extra] + dirs
+    if not dirs:   # nichts eingestellt: übliche Ordner im Benutzerverzeichnis
+        dirs = [r["path"] for r in ebooks.roots()[1:]
+                if os.path.dirname(os.path.abspath(r["path"])) != os.path.abspath(r["path"])
+                and r["path"] not in ("/media", "/mnt", "/Volumes")]
+    return list(dict.fromkeys(dirs))
+
+
+@route("GET", r"/api/books/(\d+)/ebook")
+def _ebook_info(h, qs, bid):
+    db = A(h).db
+    b = db.one("SELECT ebook_path, ebook_position, title FROM books WHERE id=?", (int(bid),))
+    if not b:
+        raise ApiError(404, "Buch nicht gefunden")
+    p = ebooks.norm_path(b["ebook_path"])
+    out = {"path": b["ebook_path"], "exists": bool(p) and os.path.isfile(p),
+           "kind": ebooks.kind_of(p), "ext": ebooks.ext_of(p), "position": b["ebook_position"],
+           "can_open": getattr(A(h), "can_quit", True), "title": b["title"]}
+    if out["exists"]:
+        out["size"] = os.path.getsize(p)
+        if out["kind"] in ("epub", "cbz"):
+            try:
+                inf = ebooks.info(p)
+            except Exception as e:  # noqa
+                raise ApiError(422, f"eBook nicht lesbar: {e}")
+            out.update(spine=inf["spine"], toc=inf["toc"], cover=inf["cover"], meta=inf["meta"])
+    h._send(200, out)
+
+
+@route("GET", r"/api/books/(\d+)/ebook/file")
+def _ebook_file(h, qs, bid):
+    p = _ebook_path(h, bid)
+    name = urllib.parse.quote(os.path.basename(p))
+    disp = "attachment" if qs.get("download") else "inline"
+    kind = ebooks.kind_of(p)
+    headers = {"Content-Disposition": f"{disp}; filename*=UTF-8''{name}",
+               "X-Content-Type-Options": "nosniff"}
+    if kind == "html":
+        headers["Content-Security-Policy"] = EPUB_CSP
+    elif kind != "pdf":
+        headers["Content-Security-Policy"] = "sandbox"
+    ctype = ebooks.mime_of(p)
+    if ctype.startswith("text/"):
+        ctype += "; charset=utf-8"
+    h._send_file(p, ctype, headers)
+
+
+@route("GET", r"/api/books/(\d+)/ebook/text")
+def _ebook_text(h, qs, bid):
+    p = _ebook_path(h, bid)
+    h._send(200, ebooks.text_page(p, os.path.basename(p)), "text/html; charset=utf-8",
+            {"Content-Security-Policy": EPUB_CSP})
+
+
+@route("GET", r"/api/books/(\d+)/ebook/z/(.+)")
+def _ebook_member(h, qs, bid, member):
+    p = _ebook_path(h, bid)
+    if ebooks.kind_of(p) not in ("epub", "cbz"):
+        raise ApiError(400, "Kein EPUB/CBZ")
+    try:
+        data, mime = ebooks.zip_member(p, urllib.parse.unquote(member))
+    except (KeyError, FileNotFoundError):
+        raise ApiError(404, "Nicht gefunden")
+    if mime.startswith("text/"):
+        mime += "; charset=utf-8"
+    h._send(200, data, mime, {"Content-Security-Policy": EPUB_CSP,
+                              "X-Content-Type-Options": "nosniff",
+                              "Cache-Control": "max-age=300"})
+
+
+@route("PUT", r"/api/books/(\d+)/ebook/position")
+def _ebook_pos(h, qs, bid):
+    pos = h._json().get("position")
+    A(h).db.x("UPDATE books SET ebook_position=? WHERE id=?",
+              (None if pos is None else str(pos)[:500], int(bid)))
+    h._send(200, {"ok": True})
+
+
+@route("POST", r"/api/books/(\d+)/ebook/open")
+def _ebook_open(h, qs, bid):
+    if not getattr(A(h), "can_quit", True):
+        raise ApiError(403, "Im Docker-Betrieb nicht möglich")
+    ebooks.open_with_system(_ebook_path(h, bid))
+    h._send(200, {"ok": True})
+
+
+@route("POST", r"/api/books/(\d+)/ebook/find")
+def _ebook_find(h, qs, bid):
+    db = A(h).db
+    d = h._json()
+    b = db.one("SELECT id, isbn, ean, author, ax, title FROM books WHERE id=?", (int(bid),))
+    if not b:
+        raise ApiError(404, "Buch nicht gefunden")
+    for k in ("isbn", "ean", "author", "title"):   # ungespeicherte Eingaben im Formular
+        if d.get(k):
+            b[k] = d[k]
+    dirs = _ebook_dirs(db, ebooks.norm_path(d.get("dir")) or None)
+    h._send(200, {"dirs": dirs, "results": ebooks.find_for_book(b, dirs)})
+
+
+@route("GET", r"/api/books/(\d+)/ebook/meta")
+def _ebook_meta(h, qs, bid):
+    h._send(200, ebooks.lookup_record(_ebook_path(h, bid)))
+
+
+@route("POST", r"/api/books/(\d+)/ebook/cover")
+def _ebook_cover(h, qs, bid):
+    data = ebooks.cover_bytes(_ebook_path(h, bid))
+    mime = sniff_mime(data)
+    if not data or not mime.startswith("image/"):
+        raise ApiError(404, "Kein Cover im eBook")
+    A(h).db.x("INSERT OR REPLACE INTO book_images VALUES(?,?,?,?)", (int(bid), "cover", mime, data))
+    h._send(200, {"ok": True})
+
+
+@route("GET", r"/api/fs")
+def _fs(h, qs):
+    try:
+        h._send(200, ebooks.list_dir(qs.get("path", ""), qs.get("all") == "1"))
+    except FileNotFoundError:
+        raise ApiError(404, "Ordner nicht gefunden")
+
+
+@route("POST", r"/api/ebooks/scan")
+def _ebook_scan(h, qs):
+    d = h._json()
+    db = A(h).db
+    dirs = [ebooks.norm_path(x) for x in (d.get("dirs") or []) if x and x.strip()] or _ebook_dirs(db)
+
+    def link(bid, rec):
+        for p in rec.get("persons") or []:
+            A(h).link_person(bid, {"name": p["display_name"], "sort_name": p["sort_name"],
+                                   "role": p["role"]})
+    r = ebooks.scan_library(db, dirs, bool(d.get("apply")), bool(d.get("create")), link)
+    r["dirs"] = dirs
+    h._send(200, r)
 
 # ====================================================================== main
 
@@ -973,6 +1162,7 @@ def main(argv=None):
     if args.import_only:
         return 0
     Handler.app = App(db, args.data)
+    Handler.local_only = args.host in ("127.0.0.1", "localhost", "::1")
     Handler.app.can_quit = not env("BUCHLOVER_DOCKER")
     try:
         srv = _Server((args.host, args.port), Handler)

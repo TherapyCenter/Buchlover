@@ -222,3 +222,46 @@ dialog h3 { margin-top: 0; }
   header.top, nav.tabs, .toolbar, .subtabs { display: none; }
   main { border: none; margin: 0; }
 }
+
+/* ---- Sprache ---- */
+.langsel { padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); max-width: 120px; }
+
+/* ---- eBooks ---- */
+.c-ebook { width: 28px; text-align: center; }
+.ebk { cursor: pointer; font-size: 15px; line-height: 1; }
+.ebk.missing { opacity: .35; cursor: help; }
+.tile { position: relative; }
+.tile .ebadge { position: absolute; top: 12px; right: 12px; background: var(--accent); color: var(--accent-ink); border-radius: 4px; font-size: 11px; padding: 1px 5px; cursor: pointer; }
+.ebookbox .fx input { min-width: 0; }
+.ebookbox .ebtns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.ebookbox .estate { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+.ebookbox .estate.bad { color: var(--danger); }
+.fsdlg { width: min(760px, 86vw); }
+.fsdlg .fspath { display: flex; gap: 6px; margin-bottom: 8px; }
+.fsdlg .fspath input { flex: 1; min-width: 0; }
+.fsdlg .fsroots { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.fsdlg .fsroots button { font-size: 12px; padding: 2px 8px; }
+.fslist { list-style: none; margin: 0; padding: 0; height: min(52vh, 460px); overflow: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+.fslist li { padding: 4px 10px; cursor: pointer; display: flex; gap: 8px; align-items: center; border-bottom: 1px solid var(--row-alt); }
+.fslist li:hover { background: var(--accent-soft); }
+.fslist li.sel { background: var(--sel); }
+.fslist li .sz { margin-left: auto; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.fslist li.dim { color: var(--muted); }
+.findres { border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; margin: 6px 0; cursor: pointer; }
+.findres:hover, .findres.sel { border-color: var(--accent); background: var(--accent-soft); }
+.findres .p { font-size: 12px; color: var(--muted); word-break: break-all; }
+
+/* ---- eBook-Leser ---- */
+.reader { position: fixed; inset: 0; z-index: 50; background: var(--bg); display: flex; flex-direction: column; }
+.reader .rbar { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: var(--surface); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.reader .rtitle { max-width: 34vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.reader #rToc { max-width: 280px; }
+.reader .rbody { flex: 1; position: relative; display: flex; min-height: 0; }
+.reader iframe { flex: 1; border: 0; width: 100%; height: 100%; background: #fff; }
+.reader.sepia iframe { background: #f6efdf; }
+.reader.dark iframe { background: #1d1d1d; }
+.reader #rMsg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+@media (max-width: 700px) {
+  .reader .rtitle { max-width: 100%; flex-basis: 100%; order: -1; }
+  .reader #rToc { max-width: 46vw; }
+}

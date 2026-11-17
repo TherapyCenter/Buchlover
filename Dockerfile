@@ -16,10 +16,10 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /opt/buchlover
 COPY buchlover ./buchlover
-COPY HANDBUCH.md README.md LICENSE ./
+COPY HANDBUCH.md MANUAL.md README.md LICENSE ./
 
 RUN useradd --system --uid 1000 --home-dir /data buchlover \
- && mkdir -p /data /import \
+ && mkdir -p /data /import /ebooks \
  && chown buchlover /data
 
 USER buchlover

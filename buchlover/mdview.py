@@ -170,7 +170,7 @@ def _list(lines, i, out):
 
 
 PAGE = """<!doctype html>
-<html lang="de"><head><meta charset="utf-8">
+<html lang="{lang}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <style>
@@ -196,11 +196,12 @@ blockquote {{ margin:12px 0; padding:8px 14px; border-left:4px solid var(--accen
 @media (max-width: 800px) {{ .wrap {{ grid-template-columns: 1fr; }} nav {{ position:static; max-height:none; }} main {{ padding:4px 16px 24px; }} }}
 @media print {{ nav {{ display:none; }} .wrap {{ display:block; }} main {{ border:none; }} }}
 </style></head><body><div class="wrap">
-<nav><strong>Inhalt</strong>{toc}</nav>
+<nav><strong>{contents}</strong>{toc}</nav>
 <main>{body}</main></div></body></html>"""
 
 
-def markdown_page(md: str, title: str = "Handbuch"):
+def markdown_page(md: str, title: str = "Handbuch", lang: str = "de"):
     body, toc = render(md)
     nav = "".join(f'<a href="#{sid}">{html.escape(t)}</a>' for sid, t in toc)
-    return PAGE.format(title=html.escape(title), toc=nav, body=body)
+    return PAGE.format(title=html.escape(title), toc=nav, body=body, lang=lang,
+                       contents="Inhalt" if lang == "de" else "Contents")

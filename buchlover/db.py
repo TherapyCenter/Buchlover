@@ -44,6 +44,8 @@ CREATE TABLE IF NOT EXISTS books (
     read_status     TEXT,                     -- ungelesen / lese gerade / gelesen / abgebrochen
     my_rating       INTEGER,                  -- 1..5 Sterne
     notes           TEXT,
+    ebook_path      TEXT,                     -- Pfad zur eBook-Datei (EPUB, PDF, TXT …)
+    ebook_position  TEXT,                     -- Leseposition im eBook-Leser
     created_at      TEXT DEFAULT (datetime('now','localtime')),
     updated_at      TEXT DEFAULT (datetime('now','localtime'))
 );
@@ -181,7 +183,13 @@ BOOK_FIELDS = [
     "translator", "original_title", "ausgabe", "auflage", "language",
     "original_language", "condition", "series", "topic", "book_type",
     "first_published", "location", "content", "barcode", "properties",
-    "sort_order", "read_status", "my_rating", "notes",
+    "sort_order", "read_status", "my_rating", "notes", "ebook_path",
+]
+
+# Spalten, die nach Version 1.0 hinzugekommen sind (Migration bestehender Datenbanken)
+MIGRATIONS = [
+    ("books", "ebook_path", "TEXT"),
+    ("books", "ebook_position", "TEXT"),
 ]
 
 DEFAULT_PROPERTIES = [
@@ -214,6 +222,7 @@ DEFAULT_SETTINGS = {
     "owner": "",
     "lookup_overwrite": "Nein",
     "bx_from_author": "Ja",
+    "ebook_dirs": "",
 }
 
 
@@ -227,6 +236,7 @@ class Database:
         self.conn.create_function(
             "fold", 1, lambda s: None if s is None else str(s).casefold(), deterministic=True)
         self.conn.execute("PRAGMA foreign_keys = ON")
+        self._migrate()
         self.conn.executescript(SCHEMA)
         self._seed()
 
@@ -248,6 +258,19 @@ class Database:
 
     def tx(self):
         return _Tx(self)
+
+    def _migrate(self):
+        """Fehlende Spalten in Datenbanken älterer Versionen ergänzen."""
+        with self._lock:
+            c = self.conn
+            for table, col, typ in MIGRATIONS:
+                if not c.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",
+                                 (table,)).fetchone():
+                    continue          # neue Datenbank: SCHEMA legt alles an
+                cols = {r[1] for r in c.execute(f"PRAGMA table_info({table})")}
+                if col not in cols:
+                    c.execute(f"ALTER TABLE {table} ADD COLUMN {col} {typ}")
+            c.commit()
 
     def _seed(self):
         with self._lock:

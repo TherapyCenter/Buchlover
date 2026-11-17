@@ -49,6 +49,7 @@ SEARCH_FIELDS = [
     ("Inhalt", "SELECT id, content FROM books WHERE fold(content) LIKE :t", False),
     ("Biographie", """SELECT bp.book_id, p.biography FROM book_persons bp
         JOIN persons p ON p.id=bp.person_id WHERE fold(p.biography) LIKE :t""", False),
+    ("eBook", "SELECT id, ebook_path FROM books WHERE fold(ebook_path) LIKE :t", False),
 ]
 SEARCH_BY_LABEL = {f[0].lower(): f for f in SEARCH_FIELDS}
 # Feldnamen aus Original-Gruppenaktionen (BLH_G1.Suchfeld)
@@ -461,6 +462,8 @@ def stats(db: Database):
         "persons": db.one("SELECT count(*) n FROM persons")["n"],
         "loaned": db.one("SELECT count(DISTINCT book_id) n FROM loans WHERE return_date IS NULL")["n"],
         "wishlist": db.one("SELECT count(*) n FROM wishlist")["n"],
+        "ebooks": db.one("SELECT count(*) n FROM books WHERE ebook_path IS NOT NULL "
+                         "AND ebook_path<>''")["n"],
         "read": db.one("SELECT count(*) n FROM books WHERE read_status='gelesen' OR id IN "
                        "(SELECT book_id FROM reviews)")["n"],
         "by_class": grp("class"), "by_binding": grp("binding"),
@@ -501,7 +504,7 @@ EXPORT_COLUMNS = [
     ("series", "Reihe"), ("topic", "Thema"), ("book_type", "Buchart"),
     ("first_published", "Ersterscheinung"), ("location", "Standort"), ("condition", "Zustand"),
     ("barcode", "Barcode"), ("read_status", "Lesestatus"), ("my_rating", "Bewertung"),
-    ("notes", "Notiz"), ("content", "Inhalt"),
+    ("notes", "Notiz"), ("content", "Inhalt"), ("ebook_path", "eBook"),
 ]
 
 
@@ -529,20 +532,32 @@ def _rows(db, ids):
     return rows
 
 
-def export_html(db: Database, ids=None, title="Bücherliste", with_covers=True):
+# Texte der HTML-Buchliste: von, Bücher, Stand, Datumsformat
+HTML_EXPORT_TEXT = {
+    "de": ("von", "Bücher", "Stand", "%d.%m.%Y"),
+    "en": ("by", "books", "as of", "%Y-%m-%d"),
+    "es": ("de", "libros", "a fecha de", "%d/%m/%Y"),
+    "fr": ("de", "livres", "au", "%d/%m/%Y"),
+    "ru": ("—", "книг", "на", "%d.%m.%Y"),
+    "zh": ("—", "本书", "截至", "%Y-%m-%d"),
+}
+
+
+def export_html(db: Database, ids=None, title="Bücherliste", with_covers=True, lang="de"):
     """Kompakte HTML-Liste (wie 'mobile Buchliste' des Originals), Bilder eingebettet."""
     import base64
     rows = _rows(db, ids)
+    by, books_w, asof, datefmt = HTML_EXPORT_TEXT.get(lang, HTML_EXPORT_TEXT["de"])
     owner = db.settings().get("owner") or ""
-    parts = [f"""<!doctype html><html lang="de"><head><meta charset="utf-8">
+    parts = [f"""<!doctype html><html lang="{lang}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(title)}</title>
 <style>body{{font-family:system-ui,sans-serif;margin:0;padding:12px;background:#f6f4ef;color:#222}}
 h1{{font-size:20px}} .b{{display:flex;gap:12px;background:#fff;border-radius:8px;padding:10px;margin:8px 0;
 box-shadow:0 1px 2px #0002}} img{{width:64px;height:auto;border-radius:3px;flex:none}}
 .t{{font-weight:600}} .m{{color:#666;font-size:13px}}
 @media print{{.b{{break-inside:avoid;box-shadow:none;border:1px solid #ccc}}}}</style></head><body>
-<h1>{html.escape(title)}{(' von ' + html.escape(owner)) if owner else ''}</h1>
-<p class="m">{len(rows)} Bücher · Stand {dt.date.today():%d.%m.%Y}</p>"""]
+<h1>{html.escape(title)}{(f' {by} ' + html.escape(owner)) if owner else ''}</h1>
+<p class="m">{len(rows)} {books_w} · {asof} {dt.date.today().strftime(datefmt)}</p>"""]
     for r in rows:
         img = ""
         if with_covers:
