@@ -21,8 +21,8 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with: { python-version: "3.x" }
       - name: Inno Setup bereitstellen
         shell: pwsh
@@ -52,7 +52,7 @@ jobs:
           if ($u.ExitCode) { throw "Deinstallation: Exit $($u.ExitCode)" }
           if (-not (Test-Path "$data\buchlover.sqlite")) { throw "Daten fehlen nach Deinstallation" }
           "Windows-Test ok"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: windows, path: dist/*.exe }
 
   linux:
@@ -63,7 +63,7 @@ jobs:
           - { runner: ubuntu-24.04-arm, target: linux-aarch64 }
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Paket bauen
         run: python3 installer/build_unix.py ${{ matrix.target }}
       - name: Paket testen
@@ -85,13 +85,13 @@ jobs:
           sleep 1
           ! curl -sf http://127.0.0.1:8765/api/meta
           echo "Linux-Test ok"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: "${{ matrix.target }}", path: dist/*.tar.gz }
 
   macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Pakete bauen (Apple Silicon und Intel)
         run: |
           python3 installer/build_unix.py macos-arm64
@@ -109,15 +109,15 @@ jobs:
           test -f "$HOME/Library/Application Support/Buchlover/buchlover.sqlite"
           curl -sf -X POST http://127.0.0.1:8765/api/shutdown
           echo "macOS-Test ok"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: macos, path: dist/*.dmg }
 
   docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
+      - uses: actions/checkout@v7
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
       - name: Image lokal bauen und testen
         run: |
           set -e
@@ -133,7 +133,7 @@ jobs:
       - name: Version bestimmen
         id: v
         run: echo "version=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' buchlover/__init__.py)" >> "$GITHUB_OUTPUT"
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         if: env.PUBLISH == 'true'
         with:
           registry: ghcr.io
@@ -141,7 +141,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Image veröffentlichen (amd64 + arm64)
         if: env.PUBLISH == 'true'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         env:
           DOCKER_BUILD_RECORD_UPLOAD: "false"   # kein .dockerbuild-Artefakt (stört den Release-Download)
         with:
@@ -157,8 +157,8 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v') || inputs.publish
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with: { path: dist, pattern: "{windows,macos,linux-*}", merge-multiple: true }
       - name: Release erstellen/aktualisieren
         env:
